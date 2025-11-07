@@ -27,7 +27,7 @@ with open(pyproject_path, "rb") as file:
     app_description: str = toml_project["description"]
 
 
-@click.command()
+@click.command(epilog="For more details, see https://github.com/wheelercj/deploy")
 @click.version_option(app_version, prog_name=app_name)
 @click.option("--dry-run", is_flag=True)
 @click.option("--config-path", is_flag=True, help="Show the config file's path and exit.")
