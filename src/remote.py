@@ -129,6 +129,7 @@ def handle_existing_proj(
         ),
         prompt_suffix="> ",
         type=click.Choice(choices=[1, 2, 3]),
+        show_choices=False,
     )
     if choice == 3:  # cancel redeployment
         click.echo("Redeployment canceled")

@@ -109,6 +109,7 @@ def check_demo_port(
             "What do you want to do?\n1. Shut down the existing services\n2. Cancel deployment\n",
             prompt_suffix="> ",
             type=click.Choice(choices=[1, 2]),
+            show_choices=False,
         )
         if choice == 2:  # cancel deployment
             click.echo("Deployment canceled")
