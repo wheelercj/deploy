@@ -69,9 +69,7 @@ def main(dry_run: bool):
 
     compose_cmd: str = docker.get_compose_cmd(compose_files, waiting_editor_cmd)
 
-    ssh: paramiko.SSHClient = sshlib.connect(config.ssh_host, ssh_host_d)
-
-    try:  # closes ssh
+    with sshlib.connect(config.ssh_host, ssh_host_d) as ssh:
         docker.check_demo_port(dry_run, ssh, config.ssh_host, compose_cmd)
 
         remote.get_parent_folder(dry_run, ssh, config)
@@ -96,8 +94,6 @@ def main(dry_run: bool):
 
         docker.start(dry_run, remote_proj_folder, compose_cmd, ssh)
         docker.monitor(dry_run, remote_proj_folder, compose_cmd, ssh)
-    finally:
-        ssh.close()
 
     click.echo("\nDeployment attempt complete")
     if dry_run:

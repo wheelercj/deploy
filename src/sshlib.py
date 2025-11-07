@@ -1,5 +1,7 @@
 import sys
+from contextlib import contextmanager
 from pathlib import Path
+from typing import Generator
 
 import click  # https://click.palletsprojects.com/en/stable/
 import paramiko  # https://docs.paramiko.org/en/stable/
@@ -32,7 +34,8 @@ def get_host(ssh_host_s: str) -> paramiko.SSHConfigDict:
     return ssh_host
 
 
-def connect(ssh_host: str, ssh_host_d: paramiko.SSHConfigDict) -> paramiko.SSHClient:
+@contextmanager
+def connect(ssh_host: str, ssh_host_d: paramiko.SSHConfigDict) -> Generator[paramiko.SSHClient]:
     click.echo(f"SSHing into {ssh_host}")
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys()
@@ -51,4 +54,7 @@ def connect(ssh_host: str, ssh_host_d: paramiko.SSHConfigDict) -> paramiko.SSHCl
         click.echo(f"Error: {repr(err)}", file=sys.stderr)
         sys.exit(1)
 
-    return ssh
+    try:
+        yield ssh
+    finally:
+        ssh.close()
