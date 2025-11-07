@@ -29,7 +29,7 @@ with open(pyproject_path, "rb") as file:
 
 @click.command(epilog="For more details, see https://github.com/wheelercj/deploy")
 @click.version_option(app_version, prog_name=app_name)
-@click.option("--dry-run", is_flag=True)
+@click.option("--dry-run", is_flag=True, help="Preview this command without making changes.")
 @click.option("--config-path", is_flag=True, help="Show the config file's path and exit.")
 def main(dry_run: bool, config_path: bool):
     """Deploy the current folder's project."""
