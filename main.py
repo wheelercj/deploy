@@ -30,8 +30,13 @@ with open(pyproject_path, "rb") as file:
 @click.command()
 @click.version_option(app_version, prog_name=app_name)
 @click.option("--dry-run", is_flag=True)
-def main(dry_run: bool):
+@click.option("--config-path", is_flag=True, help="Show the config file's path and exit.")
+def main(dry_run: bool, config_path: bool):
     """Deploy the current folder's project."""
+    if config_path:
+        click.echo(Path(click.get_app_dir("deploy")) / "config.json")
+        sys.exit(0)
+
     if dry_run:
         click.echo("Dry run")
 
