@@ -70,7 +70,7 @@ def main(dry_run: bool):
     compose_cmd: str = docker.get_compose_cmd(compose_files, waiting_editor_cmd)
 
     with sshlib.connect(config.ssh_host, ssh_host_d) as ssh:
-        docker.check_demo_port(dry_run, ssh, config.ssh_host, compose_cmd)
+        docker.check_demo_port(dry_run, compose_cmd, ssh, config.ssh_host)
 
         remote.get_parent_folder(dry_run, ssh, config)
         remote_proj_folder: Path = config.remote_parent_folder / local_proj_folder.name

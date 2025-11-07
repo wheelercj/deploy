@@ -79,7 +79,7 @@ def get_compose_cmd(compose_files: list[Path], waiting_editor: str) -> str:
 
 
 def check_demo_port(
-    dry_run: bool, ssh: paramiko.SSHClient, ssh_host: str, compose_cmd: str
+    dry_run: bool, compose_cmd: str, ssh: paramiko.SSHClient, ssh_host: str
 ) -> None:
     click.echo(f"Checking whether the demo port (8228) is already in use on {ssh_host}")
     _, stdout, stderr = ssh.exec_command("docker ps --format json", timeout=10)
