@@ -8,6 +8,8 @@ from typing import Any
 import click  # https://click.palletsprojects.com/en/stable/
 import paramiko  # https://docs.paramiko.org/en/stable/
 
+from src.config import Config
+
 
 def get_compose_files(local_proj_folder: Path) -> list[Path]:
     compose_files: list[Path] = []
@@ -78,10 +80,10 @@ def get_compose_cmd(compose_files: list[Path], waiting_editor: str) -> str:
     return "docker compose -f '" + "' -f '".join(compose_file_names) + "'"
 
 
-def check_demo_port(
-    dry_run: bool, compose_cmd: str, ssh: paramiko.SSHClient, ssh_host: str
-) -> None:
-    click.echo(f"Checking whether the demo port (8228) is already in use on {ssh_host}")
+def check_port(dry_run: bool, compose_cmd: str, ssh: paramiko.SSHClient, config: Config) -> None:
+    click.echo(
+        f"Checking whether port {config.remote_port} is already in use on {config.ssh_host}"
+    )
     _, stdout, stderr = ssh.exec_command("docker ps --format json", timeout=10)
     if stdout.channel.recv_exit_status() != 0:
         click.echo(f"Error from `docker ps`: {stderr.read().decode()}", file=sys.stderr)
@@ -94,16 +96,16 @@ def check_demo_port(
             ports: str = __container["Ports"].split(",")[0]
             assert ports.count(":") == 1, ports.count(":")
             exposed_port: str = ports.split(":")[1].split("-")[0]
-            if exposed_port == "8228":
+            if exposed_port == config.remote_port:
                 container = __container
                 break
 
     if not container:
-        click.echo("The demo port (8228) is available")
+        click.echo(f"Port {config.remote_port} is available")
     else:
         click.echo(
-            f"The demo port (8228) is already in use by {container['Names']}"
-            f" ({container['ID']}) on {ssh_host}"
+            f"Port {config.remote_port} is already in use by {container['Names']}"
+            f" ({container['ID']}) on {config.ssh_host}"
         )
         choice: int = click.prompt(
             "What do you want to do?\n1. Shut down the existing services\n2. Cancel deployment\n",
@@ -115,7 +117,7 @@ def check_demo_port(
             click.echo("Deployment canceled")
             sys.exit(0)
         elif choice == 1:  # shut down the existing services
-            click.echo(f"Getting the services' location on {ssh_host}")
+            click.echo(f"Getting the services' location on {config.ssh_host}")
             _, stdout, stderr = ssh.exec_command(f"docker inspect {container['ID']}", timeout=10)
             if stdout.channel.recv_exit_status() != 0:
                 click.echo(
@@ -125,7 +127,9 @@ def check_demo_port(
             inspection: dict[str, Any] = json.loads(stdout.read().decode())[0]
             dir: str = inspection["Config"]["Labels"]["com.docker.compose.project.working_dir"]
 
-            click.echo(f"Shutting down {container['Names']} ({container['ID']}) on {ssh_host}")
+            click.echo(
+                f"Shutting down {container['Names']} ({container['ID']}) on {config.ssh_host}"
+            )
             if not dry_run:
                 _, stdout, stderr = ssh.exec_command(
                     f"cd '{dir}' && {compose_cmd} down", timeout=60
