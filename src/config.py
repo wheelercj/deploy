@@ -30,6 +30,10 @@ class Config:
 
         if isinstance(new_config, dict):
             for k, new_v in new_config.items():
+                assert isinstance(k, str)
+                if k.startswith("_"):
+                    continue
+
                 try:
                     old_v: Any = getattr(self, k)
                     if isinstance(old_v, Path):
