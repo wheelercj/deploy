@@ -48,7 +48,8 @@ def connect(ssh_host: str, ssh_host_d: paramiko.SSHConfigDict) -> Generator[para
             timeout=10,  # seconds
         )
     except paramiko.AuthenticationException as err:
-        click.echo(f"Error: {err} Did you add the host's SSH key to ssh-agent?", file=sys.stderr)
+        err_s: str = str(err).rstrip(".") + "."
+        click.echo(f"Error: {err_s} Did you add the host's SSH key to ssh-agent?", file=sys.stderr)
         sys.exit(1)
     except Exception as err:
         click.echo(f"Error: {repr(err)}", file=sys.stderr)
