@@ -74,7 +74,9 @@ def main(dry_run: bool, config_path: bool):
     compose_cmd: str = docker.get_compose_cmd(compose_files, waiting_editor_cmd)
 
     with sshlib.connect(config.ssh_host, ssh_host_d) as ssh:
-        config.remote_port = click.prompt("Port", type=int, default=config.remote_port or 8228)
+        config.remote_port = click.prompt(
+            f"{local_proj_folder.name} port", type=int, default=config.remote_port or 8228
+        )
         config.save()
         docker.check_port(dry_run, compose_cmd, ssh, config)
 
@@ -88,7 +90,7 @@ def main(dry_run: bool, config_path: bool):
             )
         else:
             click.echo(
-                f"The {local_proj_folder.name} project does not yet exist on {config.ssh_host}"
+                f"The {local_proj_folder.name} project does not exist on {config.ssh_host} yet"
             )
 
         remote.sync_proj(dry_run, remote_proj_folder, config)

@@ -101,7 +101,7 @@ def check_port(dry_run: bool, compose_cmd: str, ssh: paramiko.SSHClient, config:
                 break
 
     if not container:
-        click.echo(f"Port {config.remote_port} is available")
+        click.echo(f"🗸 port {config.remote_port} is available")
     else:
         click.echo(
             f"Port {config.remote_port} is already in use by {container['Names']}"
