@@ -67,10 +67,9 @@ def main(dry_run: bool, config_path: bool):
     compose_files: list[Path] = docker.get_compose_files(local_proj_folder)
 
     config.ssh_host = click.prompt("SSH host", type=str, default=config.ssh_host)
-    config.save()
-
     assert config.ssh_host is not None
     ssh_host_d: paramiko.SSHConfigDict = sshlib.get_host(config.ssh_host)
+    config.save()
 
     compose_cmd: str = docker.get_compose_cmd(compose_files, waiting_editor_cmd)
 
