@@ -12,7 +12,7 @@ Preparing to deploy commit 2fe854e
 SSH host: app-server
 SSHing into app-server
 url-shortener port [8228]:
-🗸 Port 8228 is available
+🗸 Port 8228 is available on app-server
 Remote parent folder [/home/chris/repos]:
 Checking the status of the url-shortener project on app-server
 The url-shortener project does not exist on app-server yet

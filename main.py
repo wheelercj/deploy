@@ -80,13 +80,13 @@ def main(dry_run: bool, config_path: bool):
             )
             if remote.is_port_available(ssh, config):
                 check: str = click.style("🗸", fg="green")
-                click.echo(f"{check} Port {remote_port} is available")
+                click.echo(f"{check} Port {remote_port} is available on {config.ssh_host}")
                 config.remote_port = remote_port
                 config.save()
                 break
             else:
                 x: str = click.style("🗴", fg="red")
-                click.echo(f"{x} Port {remote_port} is not available")
+                click.echo(f"{x} Port {remote_port} is not available on {config.ssh_host}")
 
         remote.get_parent_folder(dry_run, ssh, config)
         remote_proj_folder: Path = config.remote_parent_folder / local_proj_folder.name
