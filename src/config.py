@@ -31,7 +31,8 @@ class Config:
         if isinstance(new_config, dict):
             for k, new_v in new_config.items():
                 try:
-                    if isinstance(getattr(self, k), Path):
+                    old_v: Any = getattr(self, k)
+                    if isinstance(old_v, Path):
                         setattr(self, k, Path(new_v))
                     else:
                         setattr(self, k, new_v)
