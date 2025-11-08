@@ -74,11 +74,19 @@ def main(dry_run: bool, config_path: bool):
     compose_cmd: str = docker.get_compose_cmd(compose_files, waiting_editor_cmd)
 
     with sshlib.connect(config.ssh_host, ssh_host_d) as ssh:
-        config.remote_port = click.prompt(
-            f"{local_proj_folder.name} port", type=int, default=config.remote_port or 8228
-        )
-        config.save()
-        docker.check_port(dry_run, compose_cmd, ssh, config)
+        while True:
+            remote_port: int = click.prompt(
+                f"{local_proj_folder.name} port", type=int, default=config.remote_port or 8228
+            )
+            if remote.is_port_available(ssh, config):
+                check: str = click.style("🗸", fg="green")
+                click.echo(f"{check} Port {remote_port} is available")
+                config.remote_port = remote_port
+                config.save()
+                break
+            else:
+                x: str = click.style("🗴", fg="red")
+                click.echo(f"{x} Port {remote_port} is not available")
 
         remote.get_parent_folder(dry_run, ssh, config)
         remote_proj_folder: Path = config.remote_parent_folder / local_proj_folder.name

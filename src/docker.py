@@ -8,8 +8,6 @@ from typing import Any
 import click  # https://click.palletsprojects.com/en/stable/
 import paramiko  # https://docs.paramiko.org/en/stable/
 
-from src.config import Config
-
 
 def get_compose_files(local_proj_folder: Path) -> list[Path]:
     compose_files: list[Path] = []
@@ -78,71 +76,6 @@ def get_compose_cmd(compose_files: list[Path], waiting_editor: str) -> str:
         sys.exit(1)
 
     return "docker compose -f '" + "' -f '".join(compose_file_names) + "'"
-
-
-def check_port(dry_run: bool, compose_cmd: str, ssh: paramiko.SSHClient, config: Config) -> None:
-    click.echo(
-        f"Checking whether port {config.remote_port} is already in use on {config.ssh_host}"
-    )
-    _, stdout, stderr = ssh.exec_command("docker ps --format json", timeout=10)
-    if stdout.channel.recv_exit_status() != 0:
-        click.echo(f"Error from `docker ps`: {stderr.read().decode()}", file=sys.stderr)
-        sys.exit(1)
-
-    container: dict[str, Any] | None = None
-    for name in stdout.read().decode().splitlines():
-        __container: dict[str, Any] = json.loads(name)
-        if "Ports" in __container and isinstance(__container["Ports"], str):
-            ports: str = __container["Ports"].split(",")[0]
-            assert ports.count(":") == 1, ports.count(":")
-            exposed_port: str = ports.split(":")[1].split("-")[0]
-            if exposed_port == config.remote_port:
-                container = __container
-                break
-
-    if not container:
-        click.echo(f"🗸 port {config.remote_port} is available")
-    else:
-        click.echo(
-            f"Port {config.remote_port} is already in use by {container['Names']}"
-            f" ({container['ID']}) on {config.ssh_host}"
-        )
-        choice: int = click.prompt(
-            "What do you want to do?\n1. Shut down the existing services\n2. Cancel deployment\n",
-            prompt_suffix="> ",
-            type=click.Choice(choices=[1, 2]),
-            show_choices=False,
-        )
-        if choice == 2:  # cancel deployment
-            click.echo("Deployment canceled")
-            sys.exit(0)
-        elif choice == 1:  # shut down the existing services
-            click.echo(f"Getting the services' location on {config.ssh_host}")
-            _, stdout, stderr = ssh.exec_command(f"docker inspect {container['ID']}", timeout=10)
-            if stdout.channel.recv_exit_status() != 0:
-                click.echo(
-                    f"Error from `docker inspect`: {stderr.read().decode()}", file=sys.stderr
-                )
-                sys.exit(1)
-            inspection: dict[str, Any] = json.loads(stdout.read().decode())[0]
-            dir: str = inspection["Config"]["Labels"]["com.docker.compose.project.working_dir"]
-
-            click.echo(
-                f"Shutting down {container['Names']} ({container['ID']}) on {config.ssh_host}"
-            )
-            if not dry_run:
-                _, stdout, stderr = ssh.exec_command(
-                    f"cd '{dir}' && {compose_cmd} down", timeout=60
-                )
-                if stdout.channel.recv_exit_status() != 0:
-                    click.echo(
-                        f"Error from `cd '{dir}' && docker compose down`:"
-                        f" {stderr.read().decode()}",
-                        file=sys.stderr,
-                    )
-                    sys.exit(1)
-        else:
-            raise ValueError("expected input to be 1 or 2")
 
 
 def start(

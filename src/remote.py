@@ -21,6 +21,16 @@ class ProjStatus:
     dotenv_file_exists: bool = False
 
 
+def is_port_available(ssh: paramiko.SSHClient, config: Config) -> bool:
+    click.echo(
+        f"Checking whether port {config.remote_port} is already in use on {config.ssh_host}"
+    )
+    _, stdout, _ = ssh.exec_command(
+        f"ss --listening --all --numeric | grep :{config.remote_port}", timeout=10
+    )
+    return stdout.channel.recv_exit_status() != 0
+
+
 def get_parent_folder(dry_run: bool, ssh: paramiko.SSHClient, config: Config) -> None:
     config.remote_parent_folder = click.prompt(
         "Remote parent folder", type=Path, default=config.remote_parent_folder
