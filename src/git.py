@@ -20,7 +20,9 @@ def assert_clean(proj_folder: Path) -> None:
     assert isinstance(result.stderr, str)
     is_git_clean: bool = not result.stdout.strip() and not result.stderr.strip()
     if not is_git_clean:
-        click.echo("Error: there are uncommitted changes that should be handled first")
+        click.echo(
+            "Error: there are uncommitted changes that should be handled first", file=sys.stderr
+        )
         sys.exit(1)
 
 
