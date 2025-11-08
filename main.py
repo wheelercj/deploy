@@ -156,4 +156,4 @@ def generate_random_string(length: int) -> str:
 
 
 if __name__ == "__main__":
-    main()
+    main(prog_name=app_name)
