@@ -7,8 +7,9 @@ from pathlib import Path
 import click  # https://click.palletsprojects.com/en/stable/
 
 
-def assert_clean(proj_folder: Path) -> None:
-    click.echo("Making sure there are no uncommitted changes")
+def assert_clean(proj_folder: Path, verbose: bool) -> None:
+    if verbose:
+        click.echo("Making sure there are no uncommitted changes")
     # https://stackoverflow.com/questions/2657935/checking-for-a-dirty-index-or-untracked-files-with-git
     result: subprocess.CompletedProcess = subprocess.run(
         ["git", "-C", str(proj_folder), "status", "--porcelain"],
@@ -85,8 +86,9 @@ def get_waiting_editor_cmd(proj_folder: Path) -> str:
     return waiting_editor_cmd
 
 
-def get_ignores() -> str:
-    click.echo("Getting the list of files & folders ignored by Git")
+def get_ignores(verbose: bool) -> str:
+    if verbose:
+        click.echo("Getting the list of files & folders ignored by Git")
     git_ignores_result: subprocess.CompletedProcess = subprocess.run(
         ["git", "ls-files", "--exclude-standard", "--others", "--ignored", "--directory"],
         check=True,

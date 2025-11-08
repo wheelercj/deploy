@@ -7,8 +7,9 @@ import click  # https://click.palletsprojects.com/en/stable/
 import paramiko  # https://docs.paramiko.org/en/stable/
 
 
-def get_host(ssh_host_s: str) -> paramiko.SSHConfigDict:
-    click.echo("Reading SSH configuration")
+def get_host(ssh_host_s: str, verbose: bool) -> paramiko.SSHConfigDict:
+    if verbose:
+        click.echo("Reading SSH configuration")
     ssh_config: paramiko.SSHConfig = paramiko.SSHConfig.from_path(Path.home() / ".ssh" / "config")
     if ssh_host_s not in ssh_config.get_hostnames():
         click.echo(
@@ -35,8 +36,11 @@ def get_host(ssh_host_s: str) -> paramiko.SSHConfigDict:
 
 
 @contextmanager
-def connect(ssh_host: str, ssh_host_d: paramiko.SSHConfigDict) -> Generator[paramiko.SSHClient]:
-    click.echo(f"SSHing into {ssh_host}")
+def connect(
+    ssh_host: str, ssh_host_d: paramiko.SSHConfigDict, verbose: bool
+) -> Generator[paramiko.SSHClient]:
+    if verbose:
+        click.echo(f"SSHing into {ssh_host}")
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys()
     try:

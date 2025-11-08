@@ -21,17 +21,20 @@ class ProjStatus:
     dotenv_file_exists: bool = False
 
 
-def is_port_available(ssh: paramiko.SSHClient, config: Config) -> bool:
-    click.echo(
-        f"Checking whether port {config.remote_port} is already in use on {config.ssh_host}"
-    )
+def is_port_available(ssh: paramiko.SSHClient, config: Config, verbose: bool) -> bool:
+    if verbose:
+        click.echo(
+            f"Checking whether port {config.remote_port} is already in use on {config.ssh_host}"
+        )
     _, stdout, _ = ssh.exec_command(
         f"ss --listening --all --numeric | grep :{config.remote_port}", timeout=10
     )
     return stdout.channel.recv_exit_status() != 0
 
 
-def get_parent_folder(dry_run: bool, ssh: paramiko.SSHClient, config: Config) -> None:
+def get_parent_folder(
+    dry_run: bool, ssh: paramiko.SSHClient, config: Config, verbose: bool
+) -> None:
     config.remote_parent_folder = click.prompt(
         "Remote parent folder", type=Path, default=config.remote_parent_folder
     ).resolve()
@@ -48,7 +51,8 @@ def get_parent_folder(dry_run: bool, ssh: paramiko.SSHClient, config: Config) ->
         sys.exit(1)
     config.save()
 
-    click.echo(f"Making sure the project's parent folder exists on {config.ssh_host}")
+    if verbose:
+        click.echo(f"Making sure the project's parent folder exists on {config.ssh_host}")
     if not dry_run:
         _, stdout, stderr = ssh.exec_command(
             f"mkdir --parents '{config.remote_parent_folder}'", timeout=5
@@ -59,11 +63,12 @@ def get_parent_folder(dry_run: bool, ssh: paramiko.SSHClient, config: Config) ->
 
 
 def get_proj_status(
-    remote_proj_folder: Path, ssh: paramiko.SSHClient, config: Config
+    remote_proj_folder: Path, ssh: paramiko.SSHClient, config: Config, verbose: bool
 ) -> ProjStatus:
-    click.echo(
-        f"Checking the status of the {remote_proj_folder.name} project on {config.ssh_host}"
-    )
+    if verbose:
+        click.echo(
+            f"Checking the status of the {remote_proj_folder.name} project on {config.ssh_host}"
+        )
     _, stdout, stderr = ssh.exec_command(
         f"""
         if [ -d '{remote_proj_folder}' ]; then
@@ -108,6 +113,7 @@ def handle_existing_proj(
     compose_cmd: str,
     ssh: paramiko.SSHClient,
     config: Config,
+    verbose: bool,
 ) -> None:
     if remote_status.git_folder_exists:
         if remote_status.git_is_clean:
@@ -145,7 +151,8 @@ def handle_existing_proj(
         click.echo("Redeployment canceled")
         sys.exit(0)
     elif choice == 2:  # delete any volumes and the folder, and create a new folder
-        click.echo("Making sure no services are running in the remote project folder")
+        if verbose:
+            click.echo("Making sure no services are running in the remote project folder")
         if not dry_run:
             _, stdout, stderr = ssh.exec_command(
                 f"cd '{remote_proj_folder}' && {compose_cmd} down", timeout=60
@@ -178,9 +185,9 @@ def handle_existing_proj(
                 # log files to be deletable only by root.
 
 
-def sync_proj(dry_run: bool, remote_proj_folder: Path, config: Config) -> None:
+def sync_proj(dry_run: bool, remote_proj_folder: Path, config: Config, verbose: bool) -> None:
     click.echo(f"Syncing {remote_proj_folder.name} to {config.ssh_host}:{remote_proj_folder}")
-    git_ignores: str = git.get_ignores()
+    git_ignores: str = git.get_ignores(verbose)
     if not dry_run:
         git_ignores_file = NamedTemporaryFile(delete=False)
         try:
@@ -215,6 +222,7 @@ def create_dotenv(
     waiting_editor_cmd: str,
     ssh: paramiko.SSHClient,
     config: Config,
+    verbose: bool,
 ) -> None:
     dotenv_s: str = ""
     local_dotenv_path: Path = local_proj_folder / ".env"
@@ -260,7 +268,8 @@ def create_dotenv(
     if new_dotenv_s == "":
         click.echo("Skipping creating a .env file in the remote project folder")
     else:
-        click.echo("Creating a .env file in the remote project folder")
+        if verbose:
+            click.echo("Creating a .env file in the remote project folder")
         heredoc_delim: str = "HEREDOC_DELIM"
         while heredoc_delim in new_dotenv_s:
             heredoc_delim += "A"

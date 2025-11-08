@@ -24,7 +24,7 @@ def get_compose_files(local_proj_folder: Path) -> list[Path]:
     return compose_files
 
 
-def get_compose_cmd(compose_files: list[Path], waiting_editor: str) -> str:
+def get_compose_cmd(compose_files: list[Path], waiting_editor: str, verbose: bool) -> str:
     compose_file_names: list[str] = [file.name for file in compose_files]
     if len(compose_file_names) > 1:
         for name in compose_file_names:
@@ -70,7 +70,8 @@ def get_compose_cmd(compose_files: list[Path], waiting_editor: str) -> str:
                 click.echo("Deployment canceled")
                 sys.exit(0)
             compose_file_names = c_name_order
-        click.echo("Compose files merge order: " + ", ".join(compose_file_names))
+        if verbose:
+            click.echo("Compose files merge order: " + ", ".join(compose_file_names))
     if not compose_file_names:
         click.echo("Error: no compose file names found", file=sys.stderr)
         sys.exit(1)

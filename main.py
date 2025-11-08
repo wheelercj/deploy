@@ -30,8 +30,9 @@ with open(pyproject_path, "rb") as file:
 @click.command(epilog="For more details, see https://github.com/wheelercj/deploy")
 @click.version_option(app_version, prog_name=app_name)
 @click.option("--dry-run", is_flag=True, help="Preview this script without making changes.")
+@click.option("--verbose", is_flag=True, help="Include more details in the output.")
 @click.option("--config-path", is_flag=True, help="Show the config file's path and exit.")
-def main(dry_run: bool, config_path: bool):
+def main(dry_run: bool, verbose: bool, config_path: bool):
     """Deploy the current folder's project."""
     if config_path:
         click.echo(Path(click.get_app_dir("deploy")) / "config.json")
@@ -57,7 +58,7 @@ def main(dry_run: bool, config_path: bool):
         click.echo("Error: this folder is not a Git repository", file=sys.stderr)
         sys.exit(1)
 
-    git.assert_clean(local_proj_folder)
+    git.assert_clean(local_proj_folder, verbose)
 
     hash: str = git.get_latest_commit_short_hash()
     click.echo(f"Preparing to deploy commit {hash}")
@@ -68,17 +69,17 @@ def main(dry_run: bool, config_path: bool):
 
     config.ssh_host = click.prompt("SSH host", type=str, default=config.ssh_host)
     assert config.ssh_host is not None
-    ssh_host_d: paramiko.SSHConfigDict = sshlib.get_host(config.ssh_host)
+    ssh_host_d: paramiko.SSHConfigDict = sshlib.get_host(config.ssh_host, verbose)
     config.save()
 
-    compose_cmd: str = docker.get_compose_cmd(compose_files, waiting_editor_cmd)
+    compose_cmd: str = docker.get_compose_cmd(compose_files, waiting_editor_cmd, verbose)
 
-    with sshlib.connect(config.ssh_host, ssh_host_d) as ssh:
+    with sshlib.connect(config.ssh_host, ssh_host_d, verbose) as ssh:
         while True:
             remote_port: int = click.prompt(
                 f"{local_proj_folder.name} port", type=int, default=config.remote_port or 8228
             )
-            if remote.is_port_available(ssh, config):
+            if remote.is_port_available(ssh, config, verbose):
                 check: str = click.style("🗸", fg="green")
                 click.echo(f"{check} Port {remote_port} is available on {config.ssh_host}")
                 config.remote_port = remote_port
@@ -88,24 +89,32 @@ def main(dry_run: bool, config_path: bool):
                 x: str = click.style("🗴", fg="red")
                 click.echo(f"{x} Port {remote_port} is not available on {config.ssh_host}")
 
-        remote.get_parent_folder(dry_run, ssh, config)
+        remote.get_parent_folder(dry_run, ssh, config, verbose)
         remote_proj_folder: Path = config.remote_parent_folder / local_proj_folder.name
-        remote_status: remote.ProjStatus = remote.get_proj_status(remote_proj_folder, ssh, config)
+        remote_status: remote.ProjStatus = remote.get_proj_status(
+            remote_proj_folder, ssh, config, verbose
+        )
 
         if remote_status.folder_exists:
             remote.handle_existing_proj(
-                dry_run, remote_proj_folder, remote_status, compose_cmd, ssh, config
+                dry_run, remote_proj_folder, remote_status, compose_cmd, ssh, config, verbose
             )
         else:
             click.echo(
                 f"The {local_proj_folder.name} project does not exist on {config.ssh_host} yet"
             )
 
-        remote.sync_proj(dry_run, remote_proj_folder, config)
+        remote.sync_proj(dry_run, remote_proj_folder, config, verbose)
 
         if not remote_status.dotenv_file_exists:
             remote.create_dotenv(
-                dry_run, local_proj_folder, remote_proj_folder, waiting_editor_cmd, ssh, config
+                dry_run,
+                local_proj_folder,
+                remote_proj_folder,
+                waiting_editor_cmd,
+                ssh,
+                config,
+                verbose,
             )
 
         docker.start(dry_run, remote_proj_folder, compose_cmd, ssh)
