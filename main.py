@@ -131,7 +131,7 @@ def assert_user_has_cmds(cmds: list[tuple[str, str]]) -> None:
         if not shutil.which(name):
             missing_cmds.append(name + " " + url)
     if missing_cmds:
-        print(
+        click.echo(
             "Error: missing required executable(s):\n\t" + "\n\t".join(missing_cmds),
             file=sys.stderr,
         )
