@@ -10,7 +10,7 @@ $ deploy
 Making sure there are no uncommitted changes
 Preparing to deploy commit 2fe854e
 SSH host: app-server
-SSHing into app-server
+🗸 Connected to app-server
 url-shortener port [8228]:
 🗸 Port 8228 is available on app-server
 Remote parent folder [/home/chris/repos]:

@@ -55,6 +55,9 @@ def connect(ssh_host: str, ssh_host_d: paramiko.SSHConfigDict) -> Generator[para
         click.echo(f"Error: {repr(err)}", file=sys.stderr)
         sys.exit(1)
 
+    check: str = click.style("🗸", fg="green")
+    click.echo(f"{check} Connected to {ssh_host}")
+
     try:
         yield ssh
     finally:
