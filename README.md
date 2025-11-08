@@ -17,4 +17,4 @@ set -euo pipefail
 uv run --project "$HOME/repos/deploy" "$HOME/repos/deploy/main.py" "$@"
 ```
 
-Then you can run `deploy --help`.
+Then you can run `deploy --help` (if you name the file `deploy` and it's in PATH).
