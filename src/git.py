@@ -38,7 +38,7 @@ def get_latest_commit_short_hash() -> str:
 def get_editor() -> str:
     """Gets the user's editor's command for opening a file or folder"""
     editor: str = os.environ.get("EDITOR", "code")
-    if not shutil.which(editor):
+    if not shutil.which(editor.split()[0]):
         click.echo(
             f"Error: editor command `{editor}` not found. Set the EDITOR environment variable.",
             file=sys.stderr,

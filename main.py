@@ -143,7 +143,7 @@ def assert_user_has_cmds(cmds: list[tuple[str, str]]) -> None:
     missing_cmds: list[str] = []
     for cmd in cmds:
         name, url = cmd[0], cmd[1]
-        if not shutil.which(name):
+        if not shutil.which(name.split()[0]):
             missing_cmds.append(name + " " + url)
     if missing_cmds:
         click.echo(
