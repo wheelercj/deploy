@@ -11,12 +11,11 @@ Making sure there are no uncommitted changes
 Preparing to deploy commit 2fe854e
 SSH host: app-server
 🗸 Connected to app-server
-url-shortener port [8228]:
-🗸 Port 8228 is available on app-server
 Remote parent folder [/home/chris/repos]:
 The url-shortener project does not exist on app-server yet
 Syncing url-shortener to app-server:/home/chris/repos/url-shortener
 Waiting for you to choose the contents of the remote .env file
+🗸 Port 8228 is available on app-server
 Starting the Docker services
 Monitoring the services' statuses (press Ctrl+C to stop)
 	------------------------------

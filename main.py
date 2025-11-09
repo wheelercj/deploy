@@ -75,26 +75,6 @@ def main(dry_run: bool, verbose: bool, config_path: bool):
     compose_cmd: str = docker.get_compose_cmd(compose_files, waiting_editor_cmd, verbose)
 
     with sshlib.connect(config.ssh_host, ssh_host_d, verbose) as ssh:
-        remote_port: int = 8228
-        try:
-            while True:
-                remote_port = click.prompt(
-                    f"{local_proj_folder.name} port", type=int, default=config.remote_port or 8228
-                )
-                if remote.is_port_available(ssh, config, verbose):
-                    check: str = click.style("🗸", fg="green")
-                    click.echo(f"{check} Port {remote_port} is available on {config.ssh_host}")
-                    config.remote_port = remote_port
-                    config.save()
-                    break
-                else:
-                    x: str = click.style("🗴", fg="red")
-                    click.echo(f"{x} Port {remote_port} is not available on {config.ssh_host}")
-        except remote.PortCheckException as err:
-            click.echo(f"Warning: unable to check port availability because {err}")
-            config.remote_port = remote_port
-            config.save()
-
         remote.get_parent_folder(dry_run, ssh, config, verbose)
         remote_proj_folder: Path = config.remote_parent_folder / local_proj_folder.name
         remote_status: remote.ProjStatus = remote.get_proj_status(
@@ -124,6 +104,31 @@ def main(dry_run: bool, verbose: bool, config_path: bool):
                 config,
                 verbose,
             )
+
+        try:
+            remote_port: int = docker.get_port_to_publish(
+                remote_proj_folder, compose_cmd, ssh, verbose
+            )
+        except docker.PortNotFoundException as err:
+            click.echo(f"Error: {err}", file=sys.stderr)
+            sys.exit(1)
+
+        try:
+            if remote.is_port_available(remote_port, ssh, config.ssh_host, verbose):
+                check: str = click.style("🗸", fg="green")
+                click.echo(f"{check} Port {remote_port} is available on {config.ssh_host}")
+            else:
+                click.echo(
+                    f"Error: port {remote_port} (found in Docker compose file(s)) is not available"
+                    f" on {config.ssh_host}",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+        except remote.PortCheckException as err:
+            click.echo(f"Warning: unable to check port availability because {err}")
+            if not click.confirm("Do you want to continue anyways?"):
+                click.echo("Deployment canceled")
+                sys.exit(0)
 
         docker.start(dry_run, remote_proj_folder, compose_cmd, ssh)
         docker.monitor(dry_run, remote_proj_folder, compose_cmd, ssh)

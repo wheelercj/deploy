@@ -25,13 +25,11 @@ class PortCheckException(Exception):
     pass
 
 
-def is_port_available(ssh: paramiko.SSHClient, config: Config, verbose: bool) -> bool:
+def is_port_available(port: int, ssh: paramiko.SSHClient, ssh_host: str, verbose: bool) -> bool:
     if verbose:
-        click.echo(
-            f"Checking whether port {config.remote_port} is already in use on {config.ssh_host}"
-        )
+        click.echo(f"Checking whether port {port} is already in use on {ssh_host}")
     _, stdout, stderr = ssh.exec_command(
-        f"ss --listening --all --numeric | grep :{config.remote_port}", timeout=10
+        f"ss --listening --all --numeric | grep :{port}", timeout=10
     )
     status: int = stdout.channel.recv_exit_status()
     if status > 1:
