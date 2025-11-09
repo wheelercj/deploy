@@ -112,7 +112,9 @@ def main(dry_run: bool, verbose: bool, config_path: bool):
 
         remote.sync_proj(dry_run, remote_proj_folder, config, verbose)
 
-        if not remote_status.dotenv_file_exists:
+        if remote_status.dotenv_file_exists:
+            click.echo(f"{config.ssh_host} already has a .env file for {local_proj_folder.name}")
+        else:
             remote.create_dotenv(
                 dry_run,
                 local_proj_folder,
