@@ -42,10 +42,10 @@ def main(dry_run: bool, verbose: bool, config_path: bool):
         click.echo("Dry run")
 
     assert_user_has_cmds(
-        [
-            ("git", "https://git-scm.com/"),
-            ("rsync", "https://en.wikipedia.org/wiki/Rsync"),
-        ]
+        {
+            "git": "https://git-scm.com/",
+            "rsync": "https://en.wikipedia.org/wiki/Rsync",
+        }
     )
 
     config = Config()
@@ -142,19 +142,19 @@ def main(dry_run: bool, verbose: bool, config_path: bool):
     )
 
 
-def assert_user_has_cmds(cmds: list[tuple[str, str]]) -> None:
+def assert_user_has_cmds(cmds: dict[str, str]) -> None:
     """Exits with an error if the user does not have all of the given commands
 
     Parameters
     ----------
-    cmds: list[tuple[str, str]]
-        The commands that must exist. The first element of each tuple is the command's name, and
-        the second is a URL for info about the command.
+    cmds: dict[str, str]
+        The commands that must exist. The keys are command names and the values are URLs for info
+        about the commands.
     """
     missing_cmds: list[str] = []
-    for cmd in cmds:
-        name, url = cmd[0], cmd[1]
-        if not shutil.which(name.split()[0]):
+    for name, url in cmds.items():
+        name = name.split()[0]
+        if not shutil.which(name):
             missing_cmds.append(name + " " + url)
     if missing_cmds:
         click.echo(
