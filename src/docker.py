@@ -95,7 +95,10 @@ def start(
 def monitor(
     dry_run: bool, remote_proj_folder: Path, compose_cmd: str, ssh: paramiko.SSHClient
 ) -> None:
-    click.echo("Monitoring the services' statuses (press Ctrl+C to stop)")
+    if sys.platform == "darwin":
+        click.echo("Monitoring the services' statuses (press Cmd+C to stop)")
+    else:
+        click.echo("Monitoring the services' statuses (press Ctrl+C to stop)")
     if not dry_run:
         try:
             while True:
