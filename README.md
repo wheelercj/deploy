@@ -2,7 +2,7 @@
 
 Quickly deploy a web server to a remote machine.
 
-When you're giving a demo of a web service such as in a technical interview, you can use this script to let others try the service themselves. You could configure a demo subdomain like `demo.example.com` before the meeting.
+When you're giving a demo of a web service such as in a technical interview, you could use this script to let others try the service themselves using a demo subdomain like `demo.example.com` you set up before the meeting.
 
 ```
 $ cd url-shortener
