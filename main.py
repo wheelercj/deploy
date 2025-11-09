@@ -129,6 +129,10 @@ def main(dry_run: bool, verbose: bool, config_path: bool):
     click.echo("\nDeployment attempt complete")
     if dry_run:
         click.echo("Dry run complete")
+    click.echo(
+        "Remember to run any commands that must be run after deploying, such as database migration"
+        " commands"
+    )
 
 
 def assert_user_has_cmds(cmds: list[tuple[str, str]]) -> None:
