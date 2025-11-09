@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import sys
@@ -169,17 +170,30 @@ def handle_existing_proj(
                 click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
                 sys.exit(1)
 
-        click.echo("Deleting any volumes")
-        if not dry_run:
-            _, stdout, stderr = ssh.exec_command(
-                f"cd '{remote_proj_folder}'"
-                " && docker volume prune --force"
-                " && docker volume rm --force $(docker volume ls --quiet --filter dangling=true)",
-                timeout=30,
-            )
-            if stdout.channel.recv_exit_status() != 0:
-                click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
-                sys.exit(1)
+        if verbose:
+            click.echo("Checking for volumes")
+        _, stdout, stderr = ssh.exec_command(
+            f"cd '{remote_proj_folder}' && {compose_cmd} volumes --format json", timeout=10
+        )
+        if stdout.channel.recv_exit_status() != 0:
+            click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
+            sys.exit(1)
+        volume_names: list[str] = []
+        for line in stdout.read().decode().splitlines():
+            volume_names.append(json.loads(line)["Name"])
+        click.echo(
+            f"Found {len(volume_names)} volumes belonging to the {remote_proj_folder.name} project"
+        )
+        if volume_names:
+            click.echo("Deleting volumes")
+            volume_names_s: str = " ".join(volume_names)
+            if not dry_run:
+                _, stdout, stderr = ssh.exec_command(
+                    f"docker volume rm {volume_names_s}", timeout=20
+                )
+                if stdout.channel.recv_exit_status() != 0:
+                    click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
+                    sys.exit(1)
 
         click.echo("Deleting the folder")
         remote_status.dotenv_file_exists = False
