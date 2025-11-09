@@ -21,7 +21,7 @@ class ProjStatus:
     dotenv_file_exists: bool = False
 
 
-class PortCheckException(Exception):
+class PortCheckError(Exception):
     pass
 
 
@@ -33,7 +33,7 @@ def is_port_available(port: int, ssh: paramiko.SSHClient, ssh_host: str, verbose
     )
     status: int = stdout.channel.recv_exit_status()
     if status > 1:
-        raise PortCheckException(stderr.read().decode())
+        raise PortCheckError(stderr.read().decode())
 
     return status != 0
 

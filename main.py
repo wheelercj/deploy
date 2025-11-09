@@ -109,7 +109,7 @@ def main(dry_run: bool, verbose: bool, config_path: bool):
             remote_port: int = docker.get_port_to_publish(
                 remote_proj_folder, compose_cmd, ssh, verbose
             )
-        except docker.PortNotFoundException as err:
+        except docker.PortNotFoundError as err:
             click.echo(f"Error: {err}", file=sys.stderr)
             sys.exit(1)
 
@@ -124,7 +124,7 @@ def main(dry_run: bool, verbose: bool, config_path: bool):
                     file=sys.stderr,
                 )
                 sys.exit(1)
-        except remote.PortCheckException as err:
+        except remote.PortCheckError as err:
             click.echo(f"Warning: unable to check port availability because {err}")
             if not click.confirm("Do you want to continue anyways?"):
                 click.echo("Deployment canceled")

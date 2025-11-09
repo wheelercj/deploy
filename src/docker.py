@@ -103,10 +103,10 @@ def get_port_to_publish(
                 if "published" in port:
                     return int(port["published"])
 
-    raise PortNotFoundException("no port to publish found in the Docker compose file(s)")
+    raise PortNotFoundError("no port to publish found in the Docker compose file(s)")
 
 
-class PortNotFoundException(Exception):
+class PortNotFoundError(Exception):
     pass
 
 
