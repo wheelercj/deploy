@@ -158,51 +158,7 @@ def handle_existing_proj(
         click.echo("Redeployment canceled")
         sys.exit(0)
     elif choice == 2:  # delete any volumes and the folder, and create a new folder
-        if verbose:
-            click.echo("Making sure no services are running in the remote project folder")
-        if not dry_run:
-            _, stdout, stderr = ssh.exec_command(
-                f"cd '{remote_proj_folder}' && {compose_cmd} down", timeout=60
-            )
-            # even if there are no services running, `docker compose down` should exit with status
-            # code 0
-            if stdout.channel.recv_exit_status() != 0:
-                click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
-                sys.exit(1)
-
-        if verbose:
-            click.echo("Checking for volumes")
-        _, stdout, stderr = ssh.exec_command(
-            f"cd '{remote_proj_folder}' && {compose_cmd} volumes --format json", timeout=10
-        )
-        if stdout.channel.recv_exit_status() != 0:
-            click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
-            sys.exit(1)
-        volume_names: list[str] = []
-        for line in stdout.read().decode().splitlines():
-            volume_names.append(json.loads(line)["Name"])
-        click.echo(
-            f"Found {len(volume_names)} volumes belonging to the {remote_proj_folder.name} project"
-        )
-        if volume_names:
-            click.echo("Deleting volumes")
-            volume_names_s: str = " ".join(volume_names)
-            if not dry_run:
-                _, stdout, stderr = ssh.exec_command(
-                    f"docker volume rm {volume_names_s}", timeout=20
-                )
-                if stdout.channel.recv_exit_status() != 0:
-                    click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
-                    sys.exit(1)
-
-        click.echo("Deleting the folder")
-        remote_status.dotenv_file_exists = False
-        if not dry_run:
-            _, stdout, stderr = ssh.exec_command(f"rm -rf '{remote_proj_folder}'", timeout=15)
-            if stdout.channel.recv_exit_status() != 0:
-                click.echo(stderr.read().decode())
-                # The script should continue even if some files cannot be deleted. It's common for
-                # log files to be deletable only by root.
+        __delete_project(dry_run, remote_proj_folder, remote_status, compose_cmd, ssh, verbose)
 
 
 def sync_proj(dry_run: bool, remote_proj_folder: Path, config: Config, verbose: bool) -> None:
@@ -304,3 +260,56 @@ def create_dotenv(
             if stdout.channel.recv_exit_status() != 0:
                 click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
                 sys.exit(1)
+
+
+def __delete_project(
+    dry_run: bool,
+    remote_proj_folder: Path,
+    remote_status: ProjStatus,
+    compose_cmd: str,
+    ssh: paramiko.SSHClient,
+    verbose: bool,
+):
+    if verbose:
+        click.echo("Making sure no services are running in the remote project folder")
+    if not dry_run:
+        _, stdout, stderr = ssh.exec_command(
+            f"cd '{remote_proj_folder}' && {compose_cmd} down", timeout=60
+        )
+        # even if there are no services running, `docker compose down` should exit with status
+        # code 0
+        if stdout.channel.recv_exit_status() != 0:
+            click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
+            sys.exit(1)
+
+    if verbose:
+        click.echo("Checking for volumes")
+    _, stdout, stderr = ssh.exec_command(
+        f"cd '{remote_proj_folder}' && {compose_cmd} volumes --format json", timeout=10
+    )
+    if stdout.channel.recv_exit_status() != 0:
+        click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
+        sys.exit(1)
+    volume_names: list[str] = []
+    for line in stdout.read().decode().splitlines():
+        volume_names.append(json.loads(line)["Name"])
+    click.echo(
+        f"Found {len(volume_names)} volumes belonging to the {remote_proj_folder.name} project"
+    )
+    if volume_names:
+        click.echo("Deleting volumes")
+        volume_names_s: str = " ".join(volume_names)
+        if not dry_run:
+            _, stdout, stderr = ssh.exec_command(f"docker volume rm {volume_names_s}", timeout=20)
+            if stdout.channel.recv_exit_status() != 0:
+                click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
+                sys.exit(1)
+
+    click.echo("Deleting the folder")
+    remote_status.dotenv_file_exists = False
+    if not dry_run:
+        _, stdout, stderr = ssh.exec_command(f"rm -rf '{remote_proj_folder}'", timeout=15)
+        if stdout.channel.recv_exit_status() != 0:
+            click.echo(stderr.read().decode())
+            # The script should continue even if some files cannot be deleted. It's common for
+            # log files to be deletable only by root.
