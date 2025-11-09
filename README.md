@@ -1,6 +1,6 @@
 # deploy
 
-Quickly deploy a web app to a remote server.
+Quickly deploy a web server to a remote machine.
 
 ```
 $ cd url-shortener
