@@ -32,6 +32,8 @@ Deployment attempt complete
 
 A great way to use this script is when you want to quickly demo something, such as during a technical interview. You could configure a reverse proxy to forward requests from a demo subdomain like `demo.example.com` to the IP address and port you will deploy a service at, then use this script to deploy it there. Then whoever you are giving the demo to can try your service themselves.
 
+The script looks for at least one Docker compose file, an SSH configuration at `~/.ssh/config`, and an SSH key in ssh-agent. The only files sent are a new .env file and the files tracked by Git. If the project's files are already on the remote server, you are given the options to sync the files tracked by Git, or delete and recreate the remote project (including creating a new .env file and new volumes), or cancel the deployment. Files are synced to the remote server using rsync.
+
 ## Install
 
 1. Install [uv](https://docs.astral.sh/uv/) if you haven't already
