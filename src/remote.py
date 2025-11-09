@@ -21,15 +21,23 @@ class ProjStatus:
     dotenv_file_exists: bool = False
 
 
+class PortCheckException(Exception):
+    pass
+
+
 def is_port_available(ssh: paramiko.SSHClient, config: Config, verbose: bool) -> bool:
     if verbose:
         click.echo(
             f"Checking whether port {config.remote_port} is already in use on {config.ssh_host}"
         )
-    _, stdout, _ = ssh.exec_command(
+    _, stdout, stderr = ssh.exec_command(
         f"ss --listening --all --numeric | grep :{config.remote_port}", timeout=10
     )
-    return stdout.channel.recv_exit_status() != 0
+    status: int = stdout.channel.recv_exit_status()
+    if status > 1:
+        raise PortCheckException(stderr.read().decode())
+
+    return status != 0
 
 
 def get_parent_folder(
