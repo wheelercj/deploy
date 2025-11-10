@@ -67,7 +67,10 @@ def main(dry_run: bool, verbose: bool, config_path: bool):
 
     compose_files: list[Path] = docker.get_compose_files(local_proj_folder)
 
-    config.ssh_host = click.prompt("SSH host", type=str, default=config.ssh_host)
+    new_host: str = click.prompt("SSH host", type=str, default=config.ssh_host)
+    if config.ssh_host and config.ssh_host != new_host:
+        config.remote_parent_folder = None
+    config.ssh_host = new_host
     assert config.ssh_host is not None
     ssh_host_d: paramiko.SSHConfigDict = sshlib.get_host(config.ssh_host, verbose)
     config.save()
