@@ -76,6 +76,7 @@ def main(dry_run: bool, verbose: bool, config_path: bool):
 
     with sshlib.connect(config.ssh_host, ssh_host_d, verbose) as ssh:
         remote.get_parent_folder(dry_run, ssh, config, verbose)
+        assert config.remote_parent_folder is not None
         remote_proj_folder: Path = config.remote_parent_folder / local_proj_folder.name
         remote_status: remote.ProjStatus = remote.get_proj_status(
             remote_proj_folder, ssh, config, verbose

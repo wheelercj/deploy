@@ -2,12 +2,9 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from typing import get_args
 
 import click  # https://click.palletsprojects.com/en/stable/
-
-
-# All path config variables must be of type `Path`, not `Path | None`, so that they can be
-# correctly loaded from JSON.
 
 
 @dataclass
@@ -15,7 +12,7 @@ class Config:
     """Saves user input for easy reuse"""
 
     ssh_host: str | None = None
-    remote_parent_folder: Path = Path().home() / "repos"
+    remote_parent_folder: Path | None = Path().home() / "repos"
     proxy_ip_address: str | None = None
 
     _path: Path = Path(click.get_app_dir("deploy")) / "config.json"
@@ -34,12 +31,12 @@ class Config:
                     continue
 
                 try:
-                    old_v: Any = getattr(self, k)
-                    if isinstance(old_v, Path):
+                    var_types: tuple = get_args(self.__annotations__[k])
+                    if Path in var_types:
                         setattr(self, k, Path(new_v))
                     else:
                         setattr(self, k, new_v)
-                except AttributeError:
+                except KeyError:
                     pass
 
     def save(self) -> None:
