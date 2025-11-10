@@ -30,7 +30,7 @@ Monitoring the services' statuses (press Ctrl+C to stop)
 Deployment attempt complete
 ```
 
-The script looks for at least one Docker compose file, an SSH configuration at `~/.ssh/config`, and an SSH key in ssh-agent. The Docker compose file(s) must specify which port to publish. The only files sent to your remote server are a new .env file and the files tracked by Git. If the project's files are already on the remote server, you are given the options to sync the files tracked by Git, or delete and recreate the remote project (including creating a new .env file and new volumes), or cancel the deployment. Files are synced to the remote server using rsync.
+The script looks for at least one Docker compose file, an SSH configuration at `~/.ssh/config`, and an SSH key in ssh-agent. The only files sent to your remote server are a new .env file and the files tracked by Git. If the project's files are already on the remote server, you are given the options to sync the files tracked by Git, or delete and recreate the remote project (including creating a new .env file and new volumes), or cancel the deployment. Files are synced to the remote server using rsync.
 
 ## Install
 
