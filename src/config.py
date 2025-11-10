@@ -12,7 +12,7 @@ class Config:
     """Saves user input for easy reuse"""
 
     ssh_host: str | None = None
-    remote_parent_folder: Path | None = Path().home() / "repos"
+    remote_parent_folder: Path | None = None
     proxy_ip_address: str | None = None
 
     _path: Path = Path(click.get_app_dir("deploy")) / "config.json"

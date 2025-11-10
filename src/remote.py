@@ -25,6 +25,9 @@ class ProjStatus:
 def get_parent_folder(
     dry_run: bool, ssh: paramiko.SSHClient, config: Config, verbose: bool
 ) -> None:
+    if not config.remote_parent_folder:
+        config.remote_parent_folder = __get_user_home_folder(ssh) / "repos"
+
     config.remote_parent_folder = click.prompt(
         "Remote parent folder", type=Path, default=config.remote_parent_folder
     ).resolve()
@@ -243,6 +246,15 @@ def create_dotenv(
             if stdout.channel.recv_exit_status() != 0:
                 click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
                 sys.exit(1)
+
+
+def __get_user_home_folder(ssh: paramiko.SSHClient) -> Path:
+    _, stdout, stderr = ssh.exec_command("cd && pwd", timeout=10)
+    if stdout.channel.recv_exit_status() != 0:
+        click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
+        sys.exit(1)
+
+    return Path(stdout.read().decode().strip())
 
 
 def __delete_project(
