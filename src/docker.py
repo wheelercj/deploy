@@ -79,37 +79,6 @@ def get_compose_cmd(compose_files: list[Path], waiting_editor: str, verbose: boo
     return "docker compose -f '" + "' -f '".join(compose_file_names) + "'"
 
 
-def get_port_to_publish(
-    remote_proj_folder: Path, compose_cmd: str, ssh: paramiko.SSHClient, verbose: bool
-) -> int:
-    """Looks in the remote Docker compose file(s) for which port to publish"""
-    # run `docker compose config` on the remote machine, not locally, so that the user doesn't need
-    # to have a local Docker daemon running just for this
-    if verbose:
-        click.echo("Finding which port to publish in the Docker compose file(s)")
-    _, stdout, stderr = ssh.exec_command(
-        f"cd '{remote_proj_folder}' && {compose_cmd} config --format json", timeout=10
-    )
-    if stdout.channel.recv_exit_status() != 0:
-        click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
-        sys.exit(1)
-
-    docker_config: dict[str, Any] = json.loads(stdout.read().decode())
-    services: dict[str, Any] = docker_config["services"]
-    for service in services.values():
-        if "ports" in service:
-            ports: list[dict[str, Any]] = service["ports"]
-            for port in ports:
-                if "published" in port:
-                    return int(port["published"])
-
-    raise PortNotFoundError("no port to publish found in the Docker compose file(s)")
-
-
-class PortNotFoundError(Exception):
-    pass
-
-
 def start(
     dry_run: bool, remote_proj_folder: Path, compose_cmd: str, ssh: paramiko.SSHClient
 ) -> None:

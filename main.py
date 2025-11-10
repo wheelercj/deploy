@@ -105,31 +105,6 @@ def main(dry_run: bool, verbose: bool, config_path: bool):
                 verbose,
             )
 
-        try:
-            remote_port: int = docker.get_port_to_publish(
-                remote_proj_folder, compose_cmd, ssh, verbose
-            )
-        except docker.PortNotFoundError as err:
-            click.echo(f"Error: {err}", file=sys.stderr)
-            sys.exit(1)
-
-        try:
-            if remote.is_port_available(remote_port, ssh, config.ssh_host, verbose):
-                check: str = click.style("🗸", fg="green")
-                click.echo(f"{check} Port {remote_port} is available on {config.ssh_host}")
-            else:
-                click.echo(
-                    f"Error: port {remote_port} (found in Docker compose file(s)) is not available"
-                    f" on {config.ssh_host}",
-                    file=sys.stderr,
-                )
-                sys.exit(1)
-        except remote.PortCheckError as err:
-            click.echo(f"Warning: unable to check port availability because {err}")
-            if not click.confirm("Do you want to continue anyways?"):
-                click.echo("Deployment canceled")
-                sys.exit(0)
-
         docker.start(dry_run, remote_proj_folder, compose_cmd, ssh)
         docker.monitor(dry_run, remote_proj_folder, compose_cmd, ssh)
 
