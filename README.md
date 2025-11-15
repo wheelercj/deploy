@@ -14,7 +14,7 @@ The url-shortener project does not exist on app-server yet
 Syncing url-shortener to app-server:/home/chris/repos/url-shortener
 Waiting for you to choose the contents of the remote .env file
 Starting the Docker services
-Monitoring the services' statuses (press Ctrl+C to stop)
+Monitoring the services' statuses (press Ctrl+C to stop monitoring)
 	------------------------------
 	postgres: Up 7 seconds
 	url_shortener: Up 6 seconds
