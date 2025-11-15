@@ -56,10 +56,10 @@ def get_compose_cmd(compose_files: list[Path], waiting_editor: str, verbose: boo
             c_names_input = c_names_input.replace(prompt.strip(), "").strip()
 
             c_name_order: list[str] = []
-            for name in c_names_input.splitlines():
-                name = name.strip()
-                if not name.startswith("#"):
-                    name: str = name
+            for line in c_names_input.splitlines():
+                line = line.strip()
+                if not line.startswith("#"):
+                    name: str = line
                     if name not in compose_file_names:
                         click.echo(
                             f'Error: "{name}" is not a Docker compose file', file=sys.stderr
