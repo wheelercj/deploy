@@ -1,6 +1,6 @@
 # deploy
 
-Quickly deploy your application to your on-prem infrastructure.
+Simplifies deployment of your application to your on-prem infrastructure.
 
 ```
 $ cd url-shortener
