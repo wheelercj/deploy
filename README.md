@@ -1,8 +1,6 @@
 # deploy
 
-Quickly deploy a web server to a remote machine.
-
-When you're giving a demo of a web service such as in a technical interview, you could use this script to let others try the service themselves using a demo subdomain like `demo.example.com` you set up before the meeting.
+Quickly deploy your application to your on-prem infrastructure.
 
 ```
 $ cd url-shortener
