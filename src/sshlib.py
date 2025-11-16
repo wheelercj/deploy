@@ -41,14 +41,22 @@ def connect(
 ) -> Generator[paramiko.SSHClient]:
     if verbose:
         click.echo(f"SSHing into {ssh_host}")
+
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys()
+
+    identity_file_path: str = ""
+    if isinstance(ssh_host_d["identityfile"], list):
+        identity_file_path = ssh_host_d["identityfile"][0]
+    else:
+        identity_file_path = ssh_host_d["identityfile"]
+
     try:
         ssh.connect(
             ssh_host_d["hostname"],
             port=int(ssh_host_d["port"]),
             username=ssh_host_d["user"],
-            key_filename=ssh_host_d["identityfile"],
+            key_filename=identity_file_path,
             timeout=10,  # seconds
         )
     except paramiko.AuthenticationException as err:
