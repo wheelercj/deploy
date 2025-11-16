@@ -84,6 +84,7 @@ def main(dry_run: bool, verbose: bool, config_path: bool):
         )
 
         compose_cmd: str = docker.get_compose_cmd(compose_files, waiting_editor_cmd, verbose)
+        click.echo(f"\t{compose_cmd}")
 
         if remote_status.folder_exists:
             remote.handle_existing_proj(
