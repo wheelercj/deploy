@@ -52,6 +52,20 @@ def connect(
     else:
         identity_file_path = ssh_host_d["identityfile"]
 
+    __connect(ssh, ssh_host_d, identity_file_path)
+
+    check: str = click.style("🗸", fg="green")
+    click.echo(f"{check} Connected to {ssh_host}")
+
+    try:
+        yield ssh
+    finally:
+        ssh.close()
+
+
+def __connect(
+    ssh: paramiko.SSHClient, ssh_host_d: paramiko.SSHConfigDict, identity_file_path: str
+) -> None:
     while True:
         try:
             ssh.connect(
@@ -61,7 +75,7 @@ def connect(
                 key_filename=identity_file_path,
                 timeout=10,  # seconds
             )
-            break
+            return
         except paramiko.AuthenticationException as err:
             err_s: str = str(err).rstrip(".") + "."
             click.echo(
@@ -80,11 +94,3 @@ def connect(
         except Exception as err:
             click.echo(f"Error: {repr(err)}", file=sys.stderr)
             sys.exit(1)
-
-    check: str = click.style("🗸", fg="green")
-    click.echo(f"{check} Connected to {ssh_host}")
-
-    try:
-        yield ssh
-    finally:
-        ssh.close()
