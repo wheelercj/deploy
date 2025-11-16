@@ -32,7 +32,7 @@ class Config:
 
                 try:
                     var_types: tuple = get_args(self.__annotations__[k])
-                    if Path in var_types:
+                    if Path in var_types and isinstance(new_v, str):
                         setattr(self, k, Path(new_v))
                     else:
                         setattr(self, k, new_v)
