@@ -44,6 +44,7 @@ def connect(
 
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys()
+    ssh.load_host_keys(str(Path.home() / ".ssh" / "known_hosts"))
 
     identity_file_path: str = ""
     if isinstance(ssh_host_d["identityfile"], list):
@@ -51,21 +52,34 @@ def connect(
     else:
         identity_file_path = ssh_host_d["identityfile"]
 
-    try:
-        ssh.connect(
-            ssh_host_d["hostname"],
-            port=int(ssh_host_d["port"]),
-            username=ssh_host_d["user"],
-            key_filename=identity_file_path,
-            timeout=10,  # seconds
-        )
-    except paramiko.AuthenticationException as err:
-        err_s: str = str(err).rstrip(".") + "."
-        click.echo(f"Error: {err_s} Did you add the host's SSH key to ssh-agent?", file=sys.stderr)
-        sys.exit(1)
-    except Exception as err:
-        click.echo(f"Error: {repr(err)}", file=sys.stderr)
-        sys.exit(1)
+    while True:
+        try:
+            ssh.connect(
+                ssh_host_d["hostname"],
+                port=int(ssh_host_d["port"]),
+                username=ssh_host_d["user"],
+                key_filename=identity_file_path,
+                timeout=10,  # seconds
+            )
+            break
+        except paramiko.AuthenticationException as err:
+            err_s: str = str(err).rstrip(".") + "."
+            click.echo(
+                f"Error: {err_s} Did you add the host's SSH key to ssh-agent?", file=sys.stderr
+            )
+            sys.exit(1)
+        except paramiko.SSHException as err:
+            if "not found in known_hosts" not in str(err):
+                raise
+            click.echo(err)
+            if click.confirm("Add the server to known_hosts?"):
+                ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            else:
+                click.echo("Deployment canceled")
+                sys.exit(0)
+        except Exception as err:
+            click.echo(f"Error: {repr(err)}", file=sys.stderr)
+            sys.exit(1)
 
     check: str = click.style("🗸", fg="green")
     click.echo(f"{check} Connected to {ssh_host}")
