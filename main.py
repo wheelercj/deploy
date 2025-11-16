@@ -75,8 +75,6 @@ def main(dry_run: bool, verbose: bool, config_path: bool):
     ssh_host_d: paramiko.SSHConfigDict = sshlib.get_host(config.ssh_host, verbose)
     config.save()
 
-    compose_cmd: str = docker.get_compose_cmd(compose_files, waiting_editor_cmd, verbose)
-
     with sshlib.connect(config.ssh_host, ssh_host_d, verbose) as ssh:
         remote.get_parent_folder(dry_run, ssh, config, verbose)
         assert config.remote_parent_folder is not None
@@ -84,6 +82,8 @@ def main(dry_run: bool, verbose: bool, config_path: bool):
         remote_status: remote.ProjStatus = remote.get_proj_status(
             remote_proj_folder, ssh, config, verbose
         )
+
+        compose_cmd: str = docker.get_compose_cmd(compose_files, waiting_editor_cmd, verbose)
 
         if remote_status.folder_exists:
             remote.handle_existing_proj(
