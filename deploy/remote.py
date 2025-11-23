@@ -1,7 +1,6 @@
 import json
 import os
 import subprocess
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -32,16 +31,9 @@ def get_parent_folder(
         "Remote parent folder", type=Path, default=config.remote_parent_folder
     ).resolve()
     if "'" in str(config.remote_parent_folder):
-        click.echo(
-            "Error: the remote parent folder must not contain single quotes", file=sys.stderr
-        )
-        sys.exit(1)
+        raise SystemExit("Error: the remote parent folder must not contain single quotes")
     elif config.remote_parent_folder == Path("/"):
-        click.echo(
-            "Error: you cannot choose the root folder as the remote project folder",
-            file=sys.stderr,
-        )
-        sys.exit(1)
+        raise SystemExit("Error: you cannot choose the root folder as the remote project folder")
     config.save()
 
     if verbose:
@@ -51,8 +43,7 @@ def get_parent_folder(
             f"mkdir --parents '{config.remote_parent_folder}'", timeout=5
         )
         if stdout.channel.recv_exit_status() != 0:
-            click.echo(f"Error from `mkdir`: {stderr.read().decode()}", file=sys.stderr)
-            sys.exit(1)
+            raise SystemExit(f"Error from `mkdir`: {stderr.read().decode()}")
 
 
 def get_proj_status(
@@ -81,8 +72,7 @@ def get_proj_status(
         timeout=10,
     )
     if stdout.channel.recv_exit_status() != 0:
-        click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
-        sys.exit(1)
+        raise SystemExit(f"Error: {stderr.read().decode()}")
 
     remote_status = ProjStatus()
     for name in stdout.read().decode().splitlines():
@@ -142,7 +132,7 @@ def handle_existing_proj(
     )
     if choice == 3:  # cancel redeployment
         click.echo("Redeployment canceled")
-        sys.exit(0)
+        raise SystemExit(0)
     elif choice == 2:  # delete any volumes and the folder, and create a new folder
         __delete_project(dry_run, remote_proj_folder, remote_status, compose_cmd, ssh, verbose)
 
@@ -244,15 +234,13 @@ def create_dotenv(
                 timeout=10,
             )
             if stdout.channel.recv_exit_status() != 0:
-                click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
-                sys.exit(1)
+                raise SystemExit(f"Error: {stderr.read().decode()}")
 
 
 def __get_user_home_folder(ssh: paramiko.SSHClient) -> Path:
     _, stdout, stderr = ssh.exec_command("cd && pwd", timeout=10)
     if stdout.channel.recv_exit_status() != 0:
-        click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
-        sys.exit(1)
+        raise SystemExit(f"Error: {stderr.read().decode()}")
 
     return Path(stdout.read().decode().strip())
 
@@ -274,8 +262,7 @@ def __delete_project(
         # even if there are no services running, `docker compose down` should exit with status
         # code 0
         if stdout.channel.recv_exit_status() != 0:
-            click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
-            sys.exit(1)
+            raise SystemExit(f"Error: {stderr.read().decode()}")
 
     if verbose:
         click.echo("Checking for volumes")
@@ -283,8 +270,7 @@ def __delete_project(
         f"cd '{remote_proj_folder}' && {compose_cmd} volumes --format json", timeout=10
     )
     if stdout.channel.recv_exit_status() != 0:
-        click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
-        sys.exit(1)
+        raise SystemExit(f"Error: {stderr.read().decode()}")
     volume_names: list[str] = []
     for line in stdout.read().decode().splitlines():
         volume_names.append(json.loads(line)["Name"])
@@ -297,8 +283,7 @@ def __delete_project(
         if not dry_run:
             _, stdout, stderr = ssh.exec_command(f"docker volume rm {volume_names_s}", timeout=20)
             if stdout.channel.recv_exit_status() != 0:
-                click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
-                sys.exit(1)
+                raise SystemExit(f"Error: {stderr.read().decode()}")
 
     click.echo("Deleting the folder")
     remote_status.dotenv_file_exists = False

@@ -1,7 +1,6 @@
 import os
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 import click  # https://click.palletsprojects.com/en/stable/
@@ -21,10 +20,7 @@ def assert_clean(proj_folder: Path, verbose: bool) -> None:
     assert isinstance(result.stderr, str)
     is_git_clean: bool = not result.stdout.strip() and not result.stderr.strip()
     if not is_git_clean:
-        click.echo(
-            "Error: there are uncommitted changes that should be handled first", file=sys.stderr
-        )
-        sys.exit(1)
+        raise SystemExit("Error: there are uncommitted changes that should be handled first")
 
 
 def get_latest_commit_short_hash() -> str:
@@ -39,11 +35,9 @@ def get_editor() -> str:
     """Gets the user's editor's command for opening a file or folder"""
     editor: str = os.environ.get("EDITOR", "code")
     if not shutil.which(editor.split()[0]):
-        click.echo(
-            f"Error: editor command `{editor}` not found. Set the EDITOR environment variable.",
-            file=sys.stderr,
+        raise SystemExit(
+            f"Error: editor command `{editor}` not found. Set the EDITOR environment variable."
         )
-        sys.exit(1)
 
     return editor
 
@@ -76,12 +70,10 @@ def get_waiting_editor_cmd(proj_folder: Path) -> str:
             pass
 
     if not shutil.which(waiting_editor_cmd.split()[0]):
-        click.echo(
+        raise SystemExit(
             f"Error: editor command `{waiting_editor_cmd}` not found. Set your editor in your"
-            " .gitconfig (https://git-scm.com/docs/git-config).",
-            file=sys.stderr,
+            " .gitconfig (https://git-scm.com/docs/git-config)."
         )
-        sys.exit(1)
 
     return waiting_editor_cmd
 

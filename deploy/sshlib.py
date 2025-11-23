@@ -1,4 +1,3 @@
-import sys
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Generator
@@ -12,11 +11,7 @@ def get_host(ssh_host_s: str, verbose: bool) -> paramiko.SSHConfigDict:
         click.echo("Reading SSH configuration")
     ssh_config: paramiko.SSHConfig = paramiko.SSHConfig.from_path(Path.home() / ".ssh" / "config")
     if ssh_host_s not in ssh_config.get_hostnames():
-        click.echo(
-            f'Error: SSH host "{ssh_host_s}" was not found in ~/.ssh/config',
-            file=sys.stderr,
-        )
-        sys.exit(1)
+        raise SystemExit(f'Error: SSH host "{ssh_host_s}" was not found in ~/.ssh/config')
 
     ssh_host: paramiko.SSHConfigDict = ssh_config.lookup(ssh_host_s)
     if (
@@ -25,12 +20,10 @@ def get_host(ssh_host_s: str, verbose: bool) -> paramiko.SSHConfigDict:
         or "user" not in ssh_host
         or "identityfile" not in ssh_host
     ):
-        click.echo(
+        raise SystemExit(
             'Error: the SSH host in ~/.ssh/config must have definitions for "HostName", "Port",'
-            ' "User", and "IdentityFile"',
-            file=sys.stderr,
+            ' "User", and "IdentityFile"'
         )
-        sys.exit(1)
 
     return ssh_host
 
@@ -78,10 +71,7 @@ def __connect(
             return
         except paramiko.AuthenticationException as err:
             err_s: str = str(err).rstrip(".") + "."
-            click.echo(
-                f"Error: {err_s} Did you add the host's SSH key to ssh-agent?", file=sys.stderr
-            )
-            sys.exit(1)
+            raise SystemExit(f"Error: {err_s} Did you add the host's SSH key to ssh-agent?")
         except paramiko.SSHException as err:
             if "not found in known_hosts" not in str(err):
                 raise
@@ -90,7 +80,6 @@ def __connect(
                 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             else:
                 click.echo("Deployment canceled")
-                sys.exit(0)
+                raise SystemExit(0)
         except Exception as err:
-            click.echo(f"Error: {repr(err)}", file=sys.stderr)
-            sys.exit(1)
+            raise SystemExit(f"Error: {repr(err)}")

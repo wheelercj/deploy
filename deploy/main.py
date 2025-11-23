@@ -1,6 +1,5 @@
 import secrets
 import shutil
-import sys
 from pathlib import Path
 
 import click  # https://click.palletsprojects.com/en/stable/
@@ -22,7 +21,7 @@ def main(dry_run: bool, verbose: bool, config_path: bool):
     """Deploy the current folder's project."""
     if config_path:
         click.echo(Path(click.get_app_dir("deploy")) / "config.json")
-        sys.exit(0)
+        raise SystemExit(0)
 
     if dry_run:
         click.echo("Dry run")
@@ -41,8 +40,7 @@ def main(dry_run: bool, verbose: bool, config_path: bool):
 
     git_folder: Path = local_proj_folder / ".git"
     if not git_folder.exists() or not git_folder.is_dir():
-        click.echo("Error: this folder is not a Git repository", file=sys.stderr)
-        sys.exit(1)
+        raise SystemExit("this folder is not a Git repository")
 
     git.assert_clean(local_proj_folder, verbose)
 
@@ -123,25 +121,15 @@ def assert_user_has_cmds(cmds: dict[str, str]) -> None:
         if not shutil.which(name):
             missing_cmds.append(name + " " + url)
     if missing_cmds:
-        click.echo(
-            "Error: missing required executable(s):\n\t" + "\n\t".join(missing_cmds),
-            file=sys.stderr,
-        )
-        sys.exit(1)
+        raise SystemExit("Error: missing required executable(s):\n\t" + "\n\t".join(missing_cmds))
 
 
 def get_local_proj_folder() -> Path:
     local_proj_folder: Path = Path.cwd()
     if "'" in local_proj_folder.name:
-        click.echo(
-            "Error: the project folder's name must not contain single quotes", file=sys.stderr
-        )
-        sys.exit(1)
+        raise SystemExit("Error: the project folder's name must not contain single quotes")
     elif local_proj_folder == Path("/"):
-        click.echo(
-            "Error: you cannot choose the root folder as the project folder", file=sys.stderr
-        )
-        sys.exit(1)
+        raise SystemExit("Error: you cannot choose the root folder as the project folder")
 
     return local_proj_folder
 

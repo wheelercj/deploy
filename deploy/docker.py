@@ -18,8 +18,7 @@ def get_compose_files(local_proj_folder: Path) -> list[Path]:
         if compose_name_p.match(entry.name):
             compose_files.append(entry)
     if not compose_files:
-        click.echo("Error: Docker compose file not found", file=sys.stderr)
-        sys.exit(1)
+        raise SystemExit("Error: Docker compose file not found")
 
     return compose_files
 
@@ -52,7 +51,7 @@ def get_compose_cmd(compose_files: list[Path], waiting_editor: str, verbose: boo
         if c_names_input is not None:
             if not c_names_input:
                 click.echo("Deployment canceled")
-                sys.exit(0)
+                raise SystemExit(0)
             c_names_input = c_names_input.replace(prompt.strip(), "").strip()
 
             c_name_order: list[str] = []
@@ -61,20 +60,16 @@ def get_compose_cmd(compose_files: list[Path], waiting_editor: str, verbose: boo
                 if not line.startswith("#"):
                     name: str = line
                     if name not in compose_file_names:
-                        click.echo(
-                            f'Error: "{name}" is not a Docker compose file', file=sys.stderr
-                        )
-                        sys.exit(1)
+                        raise SystemExit(f'Error: "{name}" is not a Docker compose file')
                     c_name_order.append(name)
             if not c_name_order:
                 click.echo("Deployment canceled")
-                sys.exit(0)
+                raise SystemExit(0)
             compose_file_names = c_name_order
         if verbose:
             click.echo("Compose files merge order: " + ", ".join(compose_file_names))
     if not compose_file_names:
-        click.echo("Error: no compose file names found", file=sys.stderr)
-        sys.exit(1)
+        raise SystemExit("Error: no compose file names found")
 
     return "docker compose -f '" + "' -f '".join(compose_file_names) + "'"
 
@@ -88,8 +83,7 @@ def start(
             f"cd '{remote_proj_folder}' && {compose_cmd} up -d", timeout=500
         )
         if stdout.channel.recv_exit_status() != 0:
-            click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
-            sys.exit(1)
+            raise SystemExit(f"Error: {stderr.read().decode()}")
 
 
 def monitor(
@@ -107,13 +101,11 @@ def monitor(
                     f"cd '{remote_proj_folder}' && {compose_cmd} ps --format json", timeout=10
                 )
                 if stdout.channel.recv_exit_status() != 0:
-                    click.echo(f"Error: {stderr.read().decode()}", file=sys.stderr)
-                    sys.exit(1)
+                    raise SystemExit(f"Error: {stderr.read().decode()}")
 
                 stdout_s: str = stdout.read().decode()
                 if not stdout_s:
-                    click.echo("Error: no services are running", file=sys.stderr)
-                    sys.exit(1)
+                    raise SystemExit("Error: no services are running")
 
                 click.echo("\t------------------------------")
                 for name in stdout_s.splitlines():
