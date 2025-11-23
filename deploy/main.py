@@ -15,7 +15,7 @@ from deploy.config import Config
 
 @click.command(epilog="For more details, see https://github.com/wheelercj/deploy")
 @click.version_option(package_name="deploy", prog_name="deploy")
-@click.option("--dry-run", is_flag=True, help="Preview this script without making changes.")
+@click.option("--dry-run", is_flag=True, help="Preview this program without making changes.")
 @click.option("--verbose", is_flag=True, help="Include more details in the output.")
 @click.option("--config-path", is_flag=True, help="Show the config file's path and exit.")
 def main(dry_run: bool, verbose: bool, config_path: bool):

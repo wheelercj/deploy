@@ -306,5 +306,5 @@ def __delete_project(
         _, stdout, stderr = ssh.exec_command(f"rm -rf '{remote_proj_folder}'", timeout=15)
         if stdout.channel.recv_exit_status() != 0:
             click.echo(stderr.read().decode())
-            # The script should continue even if some files cannot be deleted. It's common for
-            # log files to be deletable only by root.
+            # The program should continue even if some files cannot be deleted. It's common for log
+            # files to be deletable only by root.
