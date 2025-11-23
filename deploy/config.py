@@ -16,7 +16,6 @@ class Config:
     proxy_ip_address: str | None = None
 
     _path: Path = Path(click.get_app_dir("deploy")) / "config.json"
-    _path.parent.mkdir(parents=True, exist_ok=True)
 
     def load(self) -> None:
         try:
@@ -50,4 +49,5 @@ class Config:
             else:
                 config_d[k] = v
 
+        self._path.parent.mkdir(parents=True, exist_ok=True)
         self._path.write_text(json.dumps(config_d), encoding="utf8")
