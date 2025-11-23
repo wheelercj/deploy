@@ -10,8 +10,8 @@ from textwrap import dedent
 import click  # https://click.palletsprojects.com/en/stable/
 import paramiko  # https://docs.paramiko.org/en/stable/
 
-from src import git
-from src.config import Config
+from deploy import git
+from deploy.config import Config
 
 
 @dataclass

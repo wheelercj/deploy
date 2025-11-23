@@ -33,8 +33,14 @@ The script looks for at least one Docker compose file, an SSH configuration at `
 ## Install
 
 1. Install [uv](https://docs.astral.sh/uv/) if you haven't already
-2. `git clone git@github.com:wheelercj/deploy.git && cd deploy`
-3. `uv run main.py --help`
+2. `uv tool install git+https://github.com/wheelercj/deploy@main`
+3. `deploy --help`
+
+### Install from source
+
+1. Install [uv](https://docs.astral.sh/uv/) if you haven't already
+2. `git clone https://github.com/wheelercj/deploy.git && cd deploy`
+3. `uv run deploy/main.py --help`
 
 You might want to create a custom command for this. Here's a sample Bash file:
 
@@ -42,7 +48,7 @@ You might want to create a custom command for this. Here's a sample Bash file:
 #!/usr/bin/env bash
 set -euo pipefail
 
-uv run --project "$HOME/repos/deploy" "$HOME/repos/deploy/main.py" "$@"
+uv run --project "$HOME/repos/deploy" "$HOME/repos/deploy/deploy/main.py" "$@"
 ```
 
 Then you can run `deploy --help` (if you name the file `deploy` and it's in PATH).

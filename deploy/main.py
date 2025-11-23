@@ -1,34 +1,20 @@
 import secrets
 import shutil
 import sys
-import tomllib
 from pathlib import Path
-from typing import Any
 
 import click  # https://click.palletsprojects.com/en/stable/
 import paramiko  # https://docs.paramiko.org/en/stable/
 
-from src import docker
-from src import git
-from src import remote
-from src import sshlib
-from src.config import Config
-
-
-repo_folder_path: Path = Path(__file__).parent
-pyproject_path: Path = repo_folder_path / "pyproject.toml"
-
-with open(pyproject_path, "rb") as file:
-    toml_data: dict[str, Any] = tomllib.load(file)
-    toml_project: dict[str, Any] = toml_data["project"]
-
-    app_name: str = toml_project["name"]
-    app_version: str = toml_project["version"]
-    app_description: str = toml_project["description"]
+from deploy import docker
+from deploy import git
+from deploy import remote
+from deploy import sshlib
+from deploy.config import Config
 
 
 @click.command(epilog="For more details, see https://github.com/wheelercj/deploy")
-@click.version_option(app_version, prog_name=app_name)
+@click.version_option(package_name="deploy", prog_name="deploy")
 @click.option("--dry-run", is_flag=True, help="Preview this script without making changes.")
 @click.option("--verbose", is_flag=True, help="Include more details in the output.")
 @click.option("--config-path", is_flag=True, help="Show the config file's path and exit.")
@@ -171,4 +157,4 @@ def generate_random_string(length: int) -> str:
 
 
 if __name__ == "__main__":
-    main(prog_name=app_name)
+    main(prog_name="deploy")
