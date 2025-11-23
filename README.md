@@ -40,15 +40,5 @@ The script looks for at least one Docker compose file, an SSH configuration at `
 
 1. Install [uv](https://docs.astral.sh/uv/) if you haven't already
 2. `git clone https://github.com/wheelercj/deploy.git && cd deploy`
-3. `uv run deploy/main.py --help`
-
-You might want to create a custom command for this. Here's a sample Bash file:
-
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-uv run --project "$HOME/repos/deploy" "$HOME/repos/deploy/deploy/main.py" "$@"
-```
-
-Then you can run `deploy --help` (if you name the file `deploy` and it's in PATH).
+3. `uv tool install --editable .`
+4. `deploy --help`
