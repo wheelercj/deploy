@@ -80,7 +80,7 @@ def start(
     click.echo("Starting the Docker services")
     if not dry_run:
         _, stdout, stderr = ssh.exec_command(
-            f"cd '{remote_proj_folder}' && {compose_cmd} up -d", timeout=500
+            f"cd '{remote_proj_folder}' && {compose_cmd} up -d --build", timeout=500
         )
         if stdout.channel.recv_exit_status() != 0:
             raise SystemExit(f"Error: {stderr.read().decode()}")
