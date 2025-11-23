@@ -1,4 +1,3 @@
-import secrets
 import shutil
 from pathlib import Path
 
@@ -132,16 +131,6 @@ def get_local_proj_folder() -> Path:
         raise SystemExit("Error: you cannot choose the root folder as the project folder")
 
     return local_proj_folder
-
-
-def generate_random_string(length: int) -> str:
-    chars: str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-    result: list[str] = []
-    for _ in range(length):
-        result.append(secrets.choice(chars))
-
-    return "".join(result)
 
 
 if __name__ == "__main__":
